@@ -1,0 +1,72 @@
+#FRONTEND
+# Miscellaneous
+dad_frontend/*.class
+dad_frontend/*.log
+dad_frontend/*.pyc
+dad_frontend/*.swp
+dad_frontend/.DS_Store
+dad_frontend/.atom/
+dad_frontend/.build/
+dad_frontend/.buildlog/
+dad_frontend/.history
+dad_frontend/.svn/
+dad_frontend/.swiftpm/
+dad_frontend/migrate_working_dir/
+
+# IntelliJ related
+dad_frontend/*.iml
+dad_frontend/*.ipr
+dad_frontend/*.iws
+dad_frontend/.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+dad_frontend/**/doc/api/
+dad_frontend/**/ios/Flutter/.last_build_id
+dad_frontend/.dart_tool/
+dad_frontend/.flutter-plugins
+dad_frontend/.flutter-plugins-dependencies
+dad_frontend/.pub-cache/
+dad_frontend/.pub/
+dad_frontend/build/
+
+# Symbolication related
+dad_frontend/app.*.symbols
+
+# Obfuscation related
+dad_frontend/app.*.map.json
+
+# Android Studio will place build artifacts here
+dad_frontend/android/app/debug
+dad_frontend/android/app/profile
+dad_frontend/android/app/release
+
+#everything in web, macos, linux, windows, ios, android
+dad_frontend/android/
+dad_frontend/macos/
+dad_frontend/ios/
+dad_frontend/windows/
+dad_frontend/linux/
+dad_frontend/web/
+
+#BACKEND
+# See https://www.dartlang.org/guides/libraries/private-files
+
+# Files and directories created by the Operating System
+dad_backend/.DS_Store
+
+# Files and directories created by pub
+dad_backend/.dart_tool/
+dad_backend/.packages
+dad_backend/pubspec.lock
+
+# Files and directories created by dart_frog
+dad_backend/build/
+dad_backend/.dart_frog
+
+# Test related files
+dad_backend/coverage/
