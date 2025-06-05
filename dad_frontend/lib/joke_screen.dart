@@ -24,6 +24,13 @@ class _JokeScreenState extends State<JokeScreen> {
     Provider.of<JokeProvider>(context, listen: false).fetchJoke(http.Client());
   }
 
+  void _saveJoke(){
+    Provider.of<JokesGallaryProvider>(context, listen: false).addJoke(
+      Provider.of<JokeProvider>(context, listen: false).setup ?? "Empty setup", 
+      Provider.of<JokeProvider>(context, listen: false).punchline ?? "Empty punchline"
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -31,6 +38,10 @@ class _JokeScreenState extends State<JokeScreen> {
       appBar: AppBar(
         title: const Text(
           'Dad Jokes App',
+        ),
+        leading: IconButton(
+          onPressed: () => Navigator.pushNamed(context,'/gallary',),
+          icon: Icon(Icons.storage, color: theme.secondaryHeaderColor,)
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
@@ -78,12 +89,20 @@ class _JokeScreenState extends State<JokeScreen> {
                   const SizedBox(height: 20,),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        style: ButtonStyle(
-                    
+                        onPressed: () => _saveJoke(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Save',
+                            style: theme.textTheme.labelMedium,
+                          ),
                         ),
+                      ),
+                      const SizedBox(width: 50,),
+                      ElevatedButton(
                         onPressed: () => _loadNewJoke(),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),

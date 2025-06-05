@@ -45,3 +45,15 @@ class JokeProvider extends ChangeNotifier{
     }
   }
 }
+
+class JokesGallaryProvider extends ChangeNotifier{
+  List<List<String>> jokes = [];
+
+  void addJoke (String setup, String punchline){
+    try{
+      jokes.add([setup, punchline]);
+    } catch (e){
+      print(e);
+    }
+  }
+}

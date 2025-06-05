@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'joke_provider.dart';
 import 'joke_screen.dart';
+import 'gallary_screen.dart';
 
 void main() {
   runApp( 
-    ChangeNotifierProvider(
-      create: (_) => JokeProvider(),
+    MultiProvider(
+      providers:[
+        ChangeNotifierProvider(
+        create: (_) => JokeProvider(),
+        ), 
+        ChangeNotifierProvider(
+          create: (_) => JokesGallaryProvider(),
+        )
+      ],
       child: MainApp(),
     )
   );
@@ -14,11 +22,14 @@ void main() {
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: JokeScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => JokeScreen(),
+        '/gallary': (context) => GallaryScreen(),
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 255, 204, 0),
