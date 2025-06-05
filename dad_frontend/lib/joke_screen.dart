@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
-
 class JokeScreen extends StatefulWidget {
   const JokeScreen({super.key});
 
@@ -20,28 +19,27 @@ class _JokeScreenState extends State<JokeScreen> {
     _loadNewJoke();
   }
 
-  void _loadNewJoke(){
+  void _loadNewJoke() {
     Provider.of<JokeProvider>(context, listen: false).fetchJoke(http.Client());
   }
 
-  void _saveJoke(){
+  void _saveJoke() {
     Provider.of<JokesGallaryProvider>(context, listen: false).addJoke(
-      Provider.of<JokeProvider>(context, listen: false).setup ?? "Empty setup", 
-      Provider.of<JokeProvider>(context, listen: false).punchline ?? "Empty punchline"
+      Provider.of<JokeProvider>(context, listen: false).setup ?? "Empty setup",
+      Provider.of<JokeProvider>(context, listen: false).punchline ??
+          "Empty punchline",
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Dad Jokes App',
-        ),
+        title: const Text('Dad Jokes App'),
         leading: IconButton(
-          onPressed: () => Navigator.pushNamed(context,'/gallary',),
-          icon: Icon(Icons.storage, color: theme.secondaryHeaderColor,)
+          onPressed: () => Navigator.pushNamed(context, '/gallary'),
+          icon: Icon(Icons.storage, color: theme.secondaryHeaderColor),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
@@ -49,15 +47,9 @@ class _JokeScreenState extends State<JokeScreen> {
       ),
       body: SafeArea(
         child: Consumer<JokeProvider>(
-          builder: (context, jokeProvider, child){
-            if (jokeProvider.error != null){
+          builder: (context, jokeProvider, child) {
+            if (jokeProvider.error != null) {
               return Center(child: Text(jokeProvider.error!));
-            }
-            if (jokeProvider.isLoading){
-              return Center(child: CircularProgressIndicator(
-                color: theme.primaryColorDark,
-                backgroundColor: theme.scaffoldBackgroundColor,
-              ));
             }
 
             return Padding(
@@ -65,28 +57,50 @@ class _JokeScreenState extends State<JokeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        jokeProvider.setup ?? 'No joke loaded',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium
-                      ),
-                    ),
+                  Builder(
+                    builder: (context) {
+                      if (jokeProvider.isLoading) {
+                        return Center(
+                          child: Column(
+                            children: [
+                              CircularProgressIndicator(
+                                color: theme.primaryColorDark,
+                                backgroundColor: theme.scaffoldBackgroundColor,
+                              ),
+                              SizedBox(height: 65,)
+                            ],
+                          ) 
+                        );
+                      }
+                      return Column(
+                        children: [
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                jokeProvider.setup ?? 'No joke loaded',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                jokeProvider.punchline ?? 'Wait for it...',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  const SizedBox(height: 20,),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        jokeProvider.punchline ?? 'Wait for it...',
-                        textAlign: TextAlign.center, 
-                        style: theme.textTheme.bodyLarge
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20,),
+
+                  const SizedBox(height: 40),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -101,7 +115,7 @@ class _JokeScreenState extends State<JokeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 50,),
+                      const SizedBox(width: 50),
                       ElevatedButton(
                         onPressed: () => _loadNewJoke(),
                         child: Padding(
@@ -111,15 +125,15 @@ class _JokeScreenState extends State<JokeScreen> {
                             style: theme.textTheme.labelMedium,
                           ),
                         ),
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
-              )
+              ),
             );
           },
-        )
-      )
+        ),
+      ),
     );
   }
 }
