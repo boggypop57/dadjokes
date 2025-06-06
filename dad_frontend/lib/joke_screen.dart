@@ -57,50 +57,76 @@ class _JokeScreenState extends State<JokeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Builder(
-                    builder: (context) {
-                      if (jokeProvider.isLoading) {
-                        return Center(
-                          child: Column(
-                            children: [
-                              CircularProgressIndicator(
-                                color: theme.primaryColorDark,
-                                backgroundColor: theme.scaffoldBackgroundColor,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      border: Border.all(
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.outlineVariant, // Цвет границ
+                        width: 3.0,
+                      ),
+                      borderRadius: BorderRadiusGeometry.only(
+                        topLeft: Radius.circular(30.0),
+                        bottomRight: Radius.circular(20.0),
+                      ),
+                    ),
+                    height: 150,
+                    width: 500,
+                    child: Builder(
+                      builder: (context) {
+                        if (jokeProvider.isLoading) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  backgroundColor:
+                                      theme.scaffoldBackgroundColor,
+                                ),
+                                const SizedBox(height: 30),
+                                Text(
+                                  "Loading...",
+                                  style: theme.textTheme.displaySmall,
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  jokeProvider.setup ?? 'No joke loaded',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
                               ),
-                              SizedBox(height: 65,)
-                            ],
-                          ) 
+                            ),
+                            const SizedBox(height: 20),
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  jokeProvider.punchline ?? 'Wait for it...',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyLarge,
+                                ),
+                              ),
+                            ),
+                          ],
                         );
-                      }
-                      return Column(
-                        children: [
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                jokeProvider.setup ?? 'No joke loaded',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                jokeProvider.punchline ?? 'Wait for it...',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyLarge,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                      },
+                    ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,

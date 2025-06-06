@@ -38,6 +38,7 @@ class MainApp extends StatelessWidget {
         ),
         textTheme: TextTheme(
           headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          displaySmall: TextStyle(color: const Color.fromARGB(255, 76, 43, 6))
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: const Color.fromARGB(255, 255, 204, 0),
