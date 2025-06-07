@@ -47,13 +47,37 @@ class JokeProvider extends ChangeNotifier{
 }
 
 class JokesGallaryProvider extends ChangeNotifier{
-  List<List<String>> jokes = [];
+  final List<Joke> _jokes = [];
+
+  List<Joke> get jokes => _jokes;
 
   void addJoke (String setup, String punchline){
     try{
-      jokes.add([setup, punchline]);
+      // Можно было бы давать уникальный id на сервере, и проверять по этому id.
+      // Для этого нужно было бы добавить hash-функцию, которая бы присваивала уникальный id для каждой шутки
+      // Но я не буду так заморачиваться
+      // В роли id будут выступать setup и punchline
+      final bool isSame = _jokes.any(
+        (joke) => joke.setup == setup &&
+        joke.punchline == punchline
+      );
+      if(isSame) return;
+      _jokes.add(Joke(setup, punchline));
+      notifyListeners();
     } catch (e){
-      print(e);
+      debugPrint('$e');
     }
   }
+
+  void deleteJoke(int index){
+    _jokes.removeAt(index);
+    notifyListeners();
+  }
+}
+
+class Joke {
+  String setup;
+  String punchline;
+
+  Joke(this.setup, this.punchline);
 }
