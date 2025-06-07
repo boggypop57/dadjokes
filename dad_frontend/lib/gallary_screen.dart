@@ -44,11 +44,7 @@ class GallaryScreen extends StatelessWidget {
                     itemCount: provider.jokes.length,
                     itemBuilder: (context, index) {
 
-                      debugPrint('ListTile index: $index');
-
                       final joke = provider.jokes[index];
-                      
-                      debugPrint('ListTile setup: ${joke.setup}');
 
                       return Padding(
                         padding: const EdgeInsets.all(8.0),

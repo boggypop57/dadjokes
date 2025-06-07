@@ -2,6 +2,7 @@ import 'package:dad_frontend/joke_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'dart:math';
 
 class JokeScreen extends StatefulWidget {
   const JokeScreen({super.key});
@@ -11,24 +12,48 @@ class JokeScreen extends StatefulWidget {
 }
 
 class _JokeScreenState extends State<JokeScreen> {
-  //bool _showPunchline = false;
+  Joke? _fromHistory;
+
+  String get currentSetup {
+    if(_fromHistory != null) return _fromHistory!.setup;
+    return Provider.of<JokeProvider>(context, listen: false).setup ?? 'No setup';
+  }
+
+  String get currentPunchline {
+    if(_fromHistory != null) return _fromHistory!.punchline;
+    return Provider.of<JokeProvider>(context, listen: false).punchline ?? 'No setup';
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadNewJoke();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNewJoke();
+    });
   }
 
   void _loadNewJoke() {
     Provider.of<JokeProvider>(context, listen: false).fetchJoke(http.Client());
   }
 
+  void _onTapNext(String setup, String punchline) {
+    Provider.of<PreviousJokesProvider>(context, listen: false).scrollJokes(setup, punchline);
+    _loadNewJoke();
+    if (_fromHistory != null) _fromHistory = null;
+  }
+
   void _saveJoke() {
     Provider.of<JokesGallaryProvider>(context, listen: false).addJoke(
-      Provider.of<JokeProvider>(context, listen: false).setup ?? "Empty setup",
-      Provider.of<JokeProvider>(context, listen: false).punchline ??
+      _fromHistory?.setup ?? Provider.of<JokeProvider>(context, listen: false).setup ?? "Empty setup",
+      _fromHistory?.punchline ?? Provider.of<JokeProvider>(context, listen: false).punchline ??
           "Empty punchline",
     );
+  }
+
+  void _goToGallary(String setup, String punchline){
+    Provider.of<PreviousJokesProvider>(context, listen: false).scrollJokes(setup, punchline);
+    if (_fromHistory != null) _fromHistory = null;
+    Navigator.pushNamed(context, '/gallary');
   }
 
   @override
@@ -38,7 +63,7 @@ class _JokeScreenState extends State<JokeScreen> {
       appBar: AppBar(
         title: const Text('Dad Jokes App'),
         leading: IconButton(
-          onPressed: () => Navigator.pushNamed(context, '/gallary'),
+          onPressed: () => _goToGallary(currentSetup, currentPunchline),
           icon: Icon(Icons.storage, color: theme.secondaryHeaderColor),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
@@ -51,12 +76,57 @@ class _JokeScreenState extends State<JokeScreen> {
             if (jokeProvider.error != null) {
               return Center(child: Text(jokeProvider.error!));
             }
+            final jokesPrev = Provider.of<PreviousJokesProvider>(context).jokes;
 
             return Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  SizedBox(
+                    height: 150,
+                    width: 400,
+                    child: ListView.builder(
+                      shrinkWrap: false,
+                      reverse: true,
+                      itemCount: min(3, jokesPrev.length),
+                      padding: EdgeInsets.all(5),
+                      itemBuilder: (context, index){
+                        return Opacity(
+                          opacity: 0.6 - index * 0.2,
+                          child: InkWell(
+                            onTap: () =>
+                              setState(() =>
+                                _fromHistory = Joke(
+                                  jokesPrev[index].setup, 
+                                  jokesPrev[index].punchline
+                                )
+                              ),
+                              
+                            child: Card(
+                              key: ValueKey([index].hashCode),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    jokesPrev[index].setup,
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  SizedBox(height: 2,),
+                                  Text(
+                                    jokesPrev[index].punchline,
+                                    style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        );
+                      }
+                    ),
+                  ),
+
+                  SizedBox(height: 14,),
+
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
@@ -67,12 +137,12 @@ class _JokeScreenState extends State<JokeScreen> {
                             ).colorScheme.outlineVariant, // Цвет границ
                         width: 3.0,
                       ),
-                      borderRadius: BorderRadiusGeometry.only(
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(30.0),
                         bottomRight: Radius.circular(20.0),
                       ),
                     ),
-                    height: 150,
+                    height: 170,
                     width: 500,
                     child: Builder(
                       builder: (context) {
@@ -95,6 +165,7 @@ class _JokeScreenState extends State<JokeScreen> {
                             ),
                           );
                         }
+                       
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -102,7 +173,7 @@ class _JokeScreenState extends State<JokeScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  jokeProvider.setup ?? 'No joke loaded',
+                                  currentSetup,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyMedium,
                                 ),
@@ -113,7 +184,7 @@ class _JokeScreenState extends State<JokeScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  jokeProvider.punchline ?? 'Wait for it...',
+                                  currentPunchline,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodyLarge,
                                 ),
@@ -143,7 +214,8 @@ class _JokeScreenState extends State<JokeScreen> {
                       ),
                       const SizedBox(width: 50),
                       ElevatedButton(
-                        onPressed: () => _loadNewJoke(),
+                        onPressed: () => jokeProvider.isLoading ? {} :
+                           _onTapNext(currentSetup, currentPunchline),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(

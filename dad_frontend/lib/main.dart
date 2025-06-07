@@ -13,6 +13,9 @@ void main() {
         ), 
         ChangeNotifierProvider(
           create: (_) => JokesGallaryProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PreviousJokesProvider(),
         )
       ],
       child: MainApp(),

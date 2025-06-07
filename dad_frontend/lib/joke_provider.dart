@@ -81,3 +81,23 @@ class Joke {
 
   Joke(this.setup, this.punchline);
 }
+
+
+class PreviousJokesProvider extends ChangeNotifier {
+  final List<Joke> _jokes = [];
+
+  List<Joke> get jokes => _jokes;
+
+  void scrollJokes (String setup, String punchline){
+    try{
+      _jokes.insert(0,Joke(setup, punchline));
+      if(_jokes.length == 4) _jokes.removeAt(3);
+      notifyListeners();
+    } catch (e){
+      debugPrint('$e');
+    }
+  }
+
+  // не уверен, что это так должно работать
+  Joke jokeOfIndex (int index) => _jokes[index];
+}
