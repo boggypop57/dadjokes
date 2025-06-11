@@ -70,3 +70,5 @@ dad_backend/.dart_frog
 
 # Test related files
 dad_backend/coverage/
+
+dad_backend/lib/database/.env

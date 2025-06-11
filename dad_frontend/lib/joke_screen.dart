@@ -1,7 +1,6 @@
 import 'package:dad_frontend/joke_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'dart:math';
 
 class JokeScreen extends StatefulWidget {
@@ -28,12 +27,13 @@ class _JokeScreenState extends State<JokeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<JokesGallaryProvider>(context, listen: false).fetchSavedGallary();
       _loadNewJoke();
     });
   }
 
   void _loadNewJoke() {
-    Provider.of<JokeProvider>(context, listen: false).fetchJoke(http.Client());
+    Provider.of<JokeProvider>(context, listen: false).fetchJoke();
   }
 
   void _onTapNext(String setup, String punchline) {

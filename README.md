@@ -6,6 +6,8 @@ I use backend on dart_frog to reach the API (couldn't get it from frontend becau
 
 It's my study pet-project.
 
+And the architecture here is a mess... even though the project is small.
+
 P.S. I didn't copypast the flutter tutorial, yet I've wathed it two months ago and tried to build same features from memory... but my own way.
 
 
