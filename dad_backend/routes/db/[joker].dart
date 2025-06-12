@@ -1,19 +1,17 @@
-import 'dart:developer';
-
 import 'package:dad_backend/database/database.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 Future<Response> onRequest(RequestContext context, String joker) async {
   try {
-    final db = context.read<Database>().connection;
+    final db = await Database.connection();
   
     if(joker == 'jokes'){
       switch(context.request.method){
         case HttpMethod.get:
 
-          log('Fetching jokes...');
-          final jokes = await db.execute('SELECT * FROM jokes');
-          log('Jokes from DB: $jokes');
+          print('Fetching jokes...');
+          final jokes = await db.execute('SELECT * FROM joke');
+          print('Jokes from DB: $jokes');
           return Response.json(body: {'jokes': jokes});
         
         case HttpMethod.post:
@@ -22,7 +20,7 @@ Future<Response> onRequest(RequestContext context, String joker) async {
           for (final jokeData in jokes){
             final joke = jokeData as Map<String, dynamic>;
             await db.execute(
-              'INSERT INTO jokes (setup, punchline) VALUES (@setup, @punchline)',
+              'INSERT INTO joke (setup, punchline) VALUES (@setup, @punchline)',
               parameters: [joke['setup'] as String, joke['punchline'] as String],
             );
           }
@@ -37,11 +35,11 @@ Future<Response> onRequest(RequestContext context, String joker) async {
       switch(context.request.method){
         case HttpMethod.post:
 
-          log('Joker joke post started');
+          print('Joker joke post started');
           final joke = await context.request.json() as Map<String, dynamic>;
-          log('body: $joke');
+          print('body: $joke');
           await db.execute(
-            'INSERT INTO jokes (setup, punchline) VALUES (@setup, @punchline)',
+            'INSERT INTO joke (setup, punchline) VALUES (@setup, @punchline)',
             parameters: [joke['setup'] as String, joke['punchline'] as String],
           );
           return Response.json(body: {'status': 'added'});
@@ -49,14 +47,14 @@ Future<Response> onRequest(RequestContext context, String joker) async {
         case HttpMethod.delete:
           final joke = await context.request.json() as Map<String, dynamic>;
           await db.execute(
-            'DELETE FROM jokes WHERE setup = @setup AND punchline = @punchline',
+            'DELETE FROM joke WHERE setup = @setup AND punchline = @punchline',
             parameters: [joke['setup'], joke['punchline']],
           );
           return Response.json(body: {'status': 'Joke is deleted'});
       
         // ignore: no_default_cases
         default:
-          log('This is default');
+          print('This is default');
           return Response(statusCode: 405, body: 'pum pum pum');
       }
     } else{
@@ -64,7 +62,7 @@ Future<Response> onRequest(RequestContext context, String joker) async {
     }   
 
   } catch (e) {
-    log('db/index.dart  29 line', error: e);
+    print('db/[joker].dart: $e');
     return Response(statusCode: 405);
   }
 }

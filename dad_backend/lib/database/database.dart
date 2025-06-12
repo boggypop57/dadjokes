@@ -1,53 +1,52 @@
-import 'dart:developer';
 import 'package:dotenv/dotenv.dart';
 import 'package:postgres/postgres.dart';
 
 class Database {
-  Database() {
-    // Загружаем переменные окружения
-    final env = DotEnv()..load();
-    
-    // Инициализируем параметры подключения
-    _dbname = env['DBNAME'];
-    _dbuser = env['DBUSER'];
-    _dbpass = env['DBPASS'];
-  }
-  late final Connection _connection;
-  late final String? _dbname;
-  late final String? _dbuser;
-  late final String? _dbpass;
+  static Connection? _connection;
 
-  Future<void> initPostgre() async{
+  static Future<void> _initPostgre() async{
+    final env = DotEnv()..load();
+    final name = env['DBNAME'];
+    final user = env['DBUSER'];
+    final pass = env['DBPASS'];
+    print('Environment loaded: $name, $user, $pass');
     try{
-      if(_dbname != null &&
-         _dbuser != null &&
-         _dbpass != null){
+      if(name != null &&
+         user != null &&
+         pass != null){
       
         _connection = await Connection.open(
           Endpoint(
             host: 'localhost',
-            database: _dbname!,
-            username: _dbuser,
-            password: _dbpass,
+            database: name,
+            username: user,
+            password: pass,
           ),
           settings: const ConnectionSettings(
             sslMode: SslMode.disable,
           ),
         );
       } else {
-        throw Exception('CustomException: _dbname,'
-        ' _dbuser or _dbpass is null.');
+        throw Exception('CustomException: name,'
+        ' user or pass is null.');
       }
     } catch (e){
-      log('$e');
+      print('$e');
     }
   }
 
-  Connection get connection => _connection;
+  static Future<Connection> connection() async{
+    if(_connection == null || !_connection!.isOpen){
+      await _initPostgre();
+    }
+    return _connection!;
+  }
 
   Future<void> close() async {
-    if (_connection.isOpen) {
-      await _connection.close();
+    if(_connection != null){
+      if (_connection!.isOpen) {
+        await _connection!.close();
+      }
     }
   }
 }
