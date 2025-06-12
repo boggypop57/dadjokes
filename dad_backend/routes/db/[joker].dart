@@ -1,5 +1,6 @@
 import 'package:dad_backend/database/database.dart';
 import 'package:dart_frog/dart_frog.dart';
+import 'package:postgres/postgres.dart';
 
 Future<Response> onRequest(RequestContext context, String joker) async {
   try {
@@ -7,25 +8,13 @@ Future<Response> onRequest(RequestContext context, String joker) async {
   
     if(joker == 'jokes'){
       switch(context.request.method){
-        case HttpMethod.get:
 
-          print('Fetching jokes...');
-          final jokes = await db.execute('SELECT * FROM joke');
-          print('Jokes from DB: $jokes');
-          return Response.json(body: {'jokes': jokes});
-        
-        case HttpMethod.post:
-          final body = await context.request.json() as Map<String, dynamic>;
-          final jokes = body['jokes'] as List<dynamic>;
-          for (final jokeData in jokes){
-            final joke = jokeData as Map<String, dynamic>;
-            await db.execute(
-              'INSERT INTO joke (setup, punchline) VALUES (@setup, @punchline)',
-              parameters: [joke['setup'] as String, joke['punchline'] as String],
-            );
-          }
-          return Response.json(body: {'status': 'added'});
-      
+        case HttpMethod.get:
+          return addAllJokes(context);
+
+        case HttpMethod.delete:
+          return deleteAllJokes(context);
+
         // ignore: no_default_cases
         default:
           return Response(statusCode: 405);
@@ -33,24 +22,12 @@ Future<Response> onRequest(RequestContext context, String joker) async {
     }
     else if (joker == 'joke'){
       switch(context.request.method){
-        case HttpMethod.post:
 
-          print('Joker joke post started');
-          final joke = await context.request.json() as Map<String, dynamic>;
-          print('body: $joke');
-          await db.execute(
-            'INSERT INTO joke (setup, punchline) VALUES (@setup, @punchline)',
-            parameters: [joke['setup'] as String, joke['punchline'] as String],
-          );
-          return Response.json(body: {'status': 'added'});
+        case HttpMethod.post:
+          return addJoke(context);
 
         case HttpMethod.delete:
-          final joke = await context.request.json() as Map<String, dynamic>;
-          await db.execute(
-            'DELETE FROM joke WHERE setup = @setup AND punchline = @punchline',
-            parameters: [joke['setup'], joke['punchline']],
-          );
-          return Response.json(body: {'status': 'Joke is deleted'});
+          return deleteJoke(context);
       
         // ignore: no_default_cases
         default:
@@ -65,4 +42,55 @@ Future<Response> onRequest(RequestContext context, String joker) async {
     print('db/[joker].dart: $e');
     return Response(statusCode: 405);
   }
+}
+
+
+Future<Response> deleteJoke(RequestContext context) async{
+  final db = await Database.connection();
+  final joke = await context.request.json() as Map<String, dynamic>;
+
+  final sql = Sql.named('DELETE FROM joke WHERE setup ='
+  ' @setup:text AND punchline = @punchline:text');
+  await db.execute(
+    sql,
+    parameters: {
+      'setup': joke['setup'] as String, 
+      'punchline': joke['punchline'] as String,
+    },
+  );
+  return Response.json(body: {'status': 'Joke is deleted'});
+}
+
+
+Future<Response> addJoke(RequestContext context) async{
+  final db = await Database.connection();
+  print('Joker joke post started');
+  final joke = await context.request.json() as Map<String, dynamic>;
+  print('body: $joke');
+  final sql = Sql.named('INSERT INTO joke (setup, punchline)'
+  ' VALUES (@setup:text, @punchline:text)');
+  await db.execute(
+    sql,
+    parameters: {
+      'setup': joke['setup'] as String,
+      'punchline': joke['punchline'] as String,
+    },
+  );
+  return Response.json(body: {'status': 'added'});
+}
+
+
+Future<Response> addAllJokes(RequestContext context) async{
+  final db = await Database.connection();
+  print('Fetching jokes...');
+  final jokes = await db.execute('SELECT * FROM joke');
+  print('Jokes from DB: $jokes');
+  return Response.json(body: {'jokes': jokes});
+}
+
+
+Future<Response> deleteAllJokes(RequestContext context) async{
+  final db = await Database.connection();
+  final result = await db.execute('TRUNCATE joke RESTART IDENTITY');
+  return Response.json(body: {'result': result.toString()});
 }
