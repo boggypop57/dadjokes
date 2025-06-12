@@ -4,13 +4,11 @@ import 'package:postgres/postgres.dart';
 
 Future<Response> onRequest(RequestContext context, String joker) async {
   try {
-    final db = await Database.connection();
-  
     if(joker == 'jokes'){
       switch(context.request.method){
 
         case HttpMethod.get:
-          return addAllJokes(context);
+          return fetchAllJokes(context);
 
         case HttpMethod.delete:
           return deleteAllJokes(context);
@@ -67,6 +65,10 @@ Future<Response> addJoke(RequestContext context) async{
   print('Joker joke post started');
   final joke = await context.request.json() as Map<String, dynamic>;
   print('body: $joke');
+  if(joke['setup'] == null || joke['punchline'] == null){
+    return Response(statusCode: 405, body: 'setup or punchline is null');
+  }
+
   final sql = Sql.named('INSERT INTO joke (setup, punchline)'
   ' VALUES (@setup:text, @punchline:text)');
   await db.execute(
@@ -80,12 +82,12 @@ Future<Response> addJoke(RequestContext context) async{
 }
 
 
-Future<Response> addAllJokes(RequestContext context) async{
+Future<Response> fetchAllJokes(RequestContext context) async{
   final db = await Database.connection();
   print('Fetching jokes...');
   final jokes = await db.execute('SELECT * FROM joke');
   print('Jokes from DB: $jokes');
-  return Response.json(body: {'jokes': jokes});
+  return Response.json(body: jokes);
 }
 
 

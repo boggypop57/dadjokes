@@ -27,7 +27,6 @@ class _JokeScreenState extends State<JokeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<JokesGallaryProvider>(context, listen: false).fetchSavedGallary();
       _loadNewJoke();
     });
   }

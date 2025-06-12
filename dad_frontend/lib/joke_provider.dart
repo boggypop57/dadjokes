@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-//import 'package:provider/provider.dart';
 
 class JokeProvider extends ChangeNotifier {
   String? setup; //The main part of a joke
@@ -10,14 +9,12 @@ class JokeProvider extends ChangeNotifier {
   String? error;
   bool isLoading = false;
 
-  Future<void> fetchJoke({http.Client? client}) async {
-    final usedClient = client ?? http.Client();
-
+  Future<void> fetchJoke() async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final response = await usedClient.get(
+      final response = await http.get(
         Uri.parse('http://localhost:8080/'),
       );
 
@@ -30,6 +27,7 @@ class JokeProvider extends ChangeNotifier {
         setup = data['setup'];
         punchline = data['punchline'];
         error = null;
+
       } else {
         setup = null;
         punchline = null;
@@ -48,19 +46,28 @@ class JokeProvider extends ChangeNotifier {
 
 class JokesGallaryProvider extends ChangeNotifier {
   List<Joke> _jokes = [];
+  bool isLoading = false;
 
   List<Joke> get jokes => _jokes;
 
-  void fetchSavedGallary() async{
+  Future<void> fetchSavedGallary() async{
     try{
-      _jokes = await fetchJokesFromDB() ?? [];
-
+      isLoading = true;
+      notifyListeners();
+      final jokes = await _fetchJokesFromDB();
+      debugPrint("joke_provider.dart, JokesGallaryProvider,"
+    " fetchSavedGallary, jokes: $jokes");
+      _jokes = jokes!;
+      debugPrint("joke_provider.dart, JokesGallaryProvider,"
+    " fetchSavedGallary, _jokes: $_jokes");
+      isLoading = false;
+      notifyListeners();
     } catch (e){
       debugPrint("joke_provider.dart, JokesGallaryProvider, fetchSavedGallary: $e");
     }
   }
 
-  void addJoke(String setup, String punchline) {
+  Future<void> addJoke(String setup, String punchline) async{
     try {
       final bool isSame = _jokes.any(
         (joke) => joke.setup == setup && joke.punchline == punchline,
@@ -68,16 +75,23 @@ class JokesGallaryProvider extends ChangeNotifier {
       if (isSame) return;
       _jokes.add(Joke(setup, punchline));
       notifyListeners();
-      storeOneJokeInDB(Joke(setup, punchline));
+      await _storeOneJokeInDB(Joke(setup, punchline));
     } catch (e) {
       debugPrint('$e');
     }
   }
 
-  void deleteJoke(int index) {
+  Future<void> deleteJoke(int index) async{
     final deleted = _jokes.removeAt(index);
     notifyListeners();
-    deleteJokeFromDB(deleted);
+    await _deleteJokeFromDB(deleted);
+  }
+
+  Future<void> deleteAllJokes() async{
+    debugPrint('Deleting everything...');
+    await _deleteAllJokesFromDB();
+    fetchSavedGallary();
+    debugPrint('Should be deleted');
   }
 }
 
@@ -123,44 +137,36 @@ class PreviousJokesProvider extends ChangeNotifier {
 //   }
 // }
 
-Future<void> storeOneJokeInDB(Joke joke) async{
+Future<void> _storeOneJokeInDB(Joke joke) async{
   try {
-    debugPrint('joke_provider, storeOneJokeInDB: Started function');
-    debugPrint('joke_provider, storeOneJokeInDB: ${joke.toJson()}');
 
-    final response = await http.post(
+    await http.post(
       Uri.parse('http://localhost:8080/db/joke'),
       headers: {'Content-Type' : 'application/json'},
-      body: jsonEncode({'jokes': joke.toJson()}),
+      body: jsonEncode(joke.toJson()),
     );
-    debugPrint('joke_provider, storeOneJokeInDB, response.statusCode: ${response.statusCode}');
-    debugPrint('joke_provider, storeOneJokeInDB, response.body: ${response.body}');
+
   } catch (e) {
     debugPrint('joke_provider, storeOneJokeInDB: $e');
   }
 }
 
-Future<List<Joke>?> fetchJokesFromDB () async {
+Future<List<Joke>?> _fetchJokesFromDB () async {
   try {
     final response = await http.get(
       Uri.parse('http://localhost:8080/db/jokes')
     );
-    debugPrint('joke_provider, fetchJokesFromDB, response.statusCode: ${response.statusCode}');
-    debugPrint('joke_provider, fetchJokesFromDB, response.body: ${response.body}');
 
     if (response.statusCode != 200) {
       debugPrint('Request failed with status: ${response.statusCode}');
       return null;
     }
 
-    final data = JsonDecoder().convert(response.body) as Map<String, dynamic>;
-    debugPrint('joke_provider, fetchJokesFromDB, data[\'jokes\']: ${data['jokes']}');
+    final jokeList = jsonDecode(response.body) as List<dynamic>;
 
-    final jokeList = data['jokes'] as List<dynamic>;
-
-    return jokeList.map((j) {
-      final jokeData = j as Map<String, dynamic>;
-      return Joke(jokeData['setup'] as String, jokeData['punchline'] as String);
+    return jokeList.map((joke) {
+      final j = joke as List<dynamic>;
+      return Joke(j[1] as String, j[2] as String);
     }).toList();
 
   } catch (e) {
@@ -169,7 +175,7 @@ Future<List<Joke>?> fetchJokesFromDB () async {
   } 
 }
 
-Future<void> deleteJokeFromDB (Joke joke) async{
+Future<void> _deleteJokeFromDB (Joke joke) async{ 
   try{
     await http.delete(
       Uri.parse('http://localhost:8080/db/joke'),
@@ -178,5 +184,15 @@ Future<void> deleteJokeFromDB (Joke joke) async{
     );
   } catch(e){
     debugPrint('joke_provider, deleteJokeFromDB: $e');
+  }
+}
+
+Future<void> _deleteAllJokesFromDB () async {
+  try{
+    await http.delete(
+      Uri.parse('http://localhost:8080/db/jokes'),
+    );
+  } catch (e){
+    debugPrint('joke_provider, deleteAllJokesFromDB: $e');
   }
 }
